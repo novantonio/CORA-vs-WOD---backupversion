@@ -816,27 +816,28 @@ if "results" in st.session_state:
         unsafe_allow_html=True,
     )
 
-    # ── Performance info ────────────────────────────────────────────────────
+   # ── Performance info ────────────────────────────────────────────────────
 
     perf1, perf2, perf3 = st.columns(3)
-
-    if res.get("download_time") is not None:
-        perf1.metric(
-            "⏱️ Dataset download",
-            f"{res['download_time']:.2f} s"
-        )
-
-    if res.get("plot_time") is not None:
-        perf2.metric(
-            "🎨 Plot generation",
-            f"{res['plot_time']:.2f} s"
-        )
-
-    if res.get("depth_update_time") is not None:
-        perf3.metric(
-            "🔄 Depth update",
-            f"{res['depth_update_time']:.2f} s"
-        )
+    
+    download_time = res.get("download_time", 0)
+    plot_time_val = res.get("plot_time", 0)
+    depth_time = res.get("depth_update_time", 0)
+    
+    perf1.metric(
+        "⏱️ Dataset download",
+        f"{download_time:.2f} s"
+    )
+    
+    perf2.metric(
+        "🎨 Plot generation",
+        f"{plot_time_val:.2f} s"
+    )
+    
+    perf3.metric(
+        "🔄 Depth update",
+        f"{depth_time:.2f} s"
+    )
 
     # Quick metrics row
     c1, c2, c3, c4 = st.columns(4)
@@ -1493,6 +1494,13 @@ if "results" in st.session_state:
 
     else:
         _blank(ax_wh, "WOD data not available")
+
+    # ── timing: plot generation end ───────────────────────────────────────
+
+    plot_elapsed = time.perf_counter() - plot_t0
+    
+    res["plot_time"] = plot_elapsed
+    st.session_state["results"] = res
 
     st.pyplot(fig3)
     plt.close(fig3)
