@@ -830,13 +830,13 @@ if "results" in st.session_state:
     )
     
     perf2.metric(
-        "🎨 Plot generation",
-        f"{plot_time_val:.2f} s"
+      "🎨 Plot generation",
+      f"{float(plot_time_val or 0):.2f} s"
     )
     
     perf3.metric(
         "🔄 Depth update",
-        f"{depth_time:.2f} s"
+        f"{float(depth_time or 0):.2f} s"
     )
 
     # Quick metrics row
