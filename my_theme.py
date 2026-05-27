@@ -1,14 +1,15 @@
 """
-cs_mach1_theme.py
+white_label_theme.py
 -----------------
-CS-MACH1 branding & Streamlit page-setup helpers.
+white label branding & Streamlit page-setup helpers.
 Import this module at the top of any CS-MACH1 Streamlit app:
 
-    from cs_mach1_theme import apply_cs_mach1_theme, cs_mach1_footer
+    from my_theme import apply_my_theme, my_footer
 """
 
 import streamlit as st
 
+FOOTER = ""
 
 # ── Palette ───────────────────────────────────────────────────────────────────
 BRAND_BLUE   = "#00A6D6"
@@ -61,13 +62,13 @@ _CSS = f"""
 
 # ── Public helpers ────────────────────────────────────────────────────────────
 
-def apply_cs_mach1_theme(
-    page_title: str = "CS-MACH1",
-    page_icon: str = "logo.png",
-    main_title: str = "🌊 CS-MACH1",
+def apply_my_theme(
+    page_title: str = "",
+    #page_icon: str = "logo.png",
+    main_title: str = "🌊 ",
     subtitle: str = "Ocean temperature monitoring platform",
-    logo_path: str = "logo.png",
-    logo_width: int = 250,
+    #logo_path: str = "logo.png",
+    #logo_width: int = 250,
     layout: str = "wide",
 ) -> None:
     """
@@ -110,8 +111,8 @@ def apply_cs_mach1_theme(
     )
 
 
-def cs_mach1_footer(text: str = "CS-MACH1 Project • Ocean Temperature Monitoring Platform") -> None:
-    """Render the standard CS-MACH1 horizontal-rule + footer."""
+def my_footer(text: str = FOOTER) -> None:
+    """Render the standard horizontal-rule + footer."""
     st.markdown("---")
     st.markdown(
         f"<div class='cs-footer'>{text}</div>",
