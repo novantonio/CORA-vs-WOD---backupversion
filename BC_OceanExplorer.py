@@ -473,17 +473,25 @@ with st.sidebar:
     st.markdown("### 📍 Location")
 
     lat_in = st.number_input(
-        "Latitude (°N)",  min_value=-90.0, max_value=90.0,
-        value=st.session_state.get("sel_lat", DEFAULT_LAT),
-        step=0.01, format="%.4f",
-        key="lat_input",
+    "Latitude (°N)",
+    min_value=-90.0,
+    max_value=90.0,
+    value=float(st.session_state.get("sel_lat", DEFAULT_LAT)),
+    step=0.01,
+    format="%.4f",
     )
+    
     lon_in = st.number_input(
-        "Longitude (°E)", min_value=-180.0, max_value=180.0,
-        value=st.session_state.get("sel_lon", DEFAULT_LON),
-        step=0.01, format="%.4f",
-        key="lon_input",
+        "Longitude (°E)",
+        min_value=-180.0,
+        max_value=180.0,
+        value=float(st.session_state.get("sel_lon", DEFAULT_LON)),
+        step=0.01,
+        format="%.4f",
     )
+
+    st.session_state["sel_lat"] = lat_in
+    st.session_state["sel_lon"] = lon_in
 
     st.divider()
     st.markdown("### ⚙️ Parameters")
@@ -491,9 +499,11 @@ with st.sidebar:
     # depth slider — changing this value triggers reactive re-render of
     # WOD scatter (clip from cache) and CORA depth profile (new cached fetch)
     max_depth = st.slider(
-        "Max depth (m)", min_value=10, max_value=5000,
-        value=st.session_state.get("last_depth", 200),
-        step=10, key="depth_slider",
+        "Max depth (m)",
+        min_value=10,
+        max_value=5000,
+        value=int(st.session_state.get("last_depth", 200)),
+        step=10,
     )
 
     st.divider()
