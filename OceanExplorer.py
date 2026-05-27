@@ -1,7 +1,7 @@
 """
 ocean_explorer.py
 ─────────────────
-CS-MACH1 — Ocean Temperature Climate Explorer
+Ocean Temperature Climate Explorer
 
 Layout
 ──────
@@ -21,6 +21,10 @@ Reactivity
 
 Dependencies:
     streamlit folium streamlit-folium requests pandas matplotlib numpy beacon-api
+
+References:
+CORA, Coriolis Ocean Dataset for Reanalysis - 10.17882/46219
+WOD, World Ocean Database - 10.25923/z885-h264
 """
 
 from __future__ import annotations
@@ -44,7 +48,7 @@ warnings.filterwarnings("ignore", message="Unverified HTTPS request")
 # ── Page config & branding ────────────────────────────────────────────────────
 
 st.set_page_config(
-    page_title="CS-MACH1 Ocean Temperature Climate Explorer",
+    page_title="Ocean Temperature Climate Explorer",
     page_icon="🌊",
     layout="wide",
 )
@@ -62,7 +66,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-st.markdown("<div class='main-title'>🌊 CS-MACH1 — Ocean Temperature Climate Explorer</div>",
+st.markdown("<div class='main-title'> Ocean Temperature Climate Explorer</div>",
             unsafe_allow_html=True)
 st.markdown(
     "<div class='sub-title'>"
@@ -1381,7 +1385,7 @@ if "results" in st.session_state:
     st.divider()
     st.markdown(
         "<div style='text-align:center;color:grey;font-size:13px;'>"
-        "CS-MACH1 Project · Ocean Climate Explorer · "
+        "· Ocean Temperature Explorer · "
         "CORA (EMODnet-Physics ERDDAP) + WOD (Beacon API / MARIS) · 1970–2023"
         "</div>",
         unsafe_allow_html=True,
