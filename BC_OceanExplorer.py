@@ -831,16 +831,16 @@ if "results" in st.session_state:
     depth_time = res.get("depth_update_time", 0)
 
     perf1.metric(
-        "⏱️ Download times",
-        f"CORA: {cora_time:.2f}s"
+        "CORA Download times",
+        f"{float(cora_time or 0):.2f} s"
     )
     perf2.metric(
-        "⏱️ Download times",
-        f"WOD: {wod_time:.2f}s"
+        "WOD Download times",
+         f"{float(wod_time or 0):.2f} s"
     )
     perf3.metric(
         "⏱️ Download times",
-        f"Total: {download_time:.2f}s"
+         f"{float(plot_time_val or 0):.2f} s"
     )
     perf4.metric(
       "🎨 Plot generation",
