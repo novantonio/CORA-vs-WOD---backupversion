@@ -743,7 +743,7 @@ if run_btn:
     pbar.progress(35, text="Querying WOD (full water column)…")
     wod_raw = fetch_wod_all(latitude, longitude)
 
-    wod_time = time.perf_counter() - download_t0
+    wod_time = time.perf_counter() - cora_time
 
     pbar.progress(70, text="Fetching CORA depth profile…")
     cora_dp = fetch_cora_depth_profile(
@@ -829,14 +829,10 @@ if "results" in st.session_state:
     download_time = res.get("download_time", 0)
     plot_time_val = res.get("plot_time", 0)
     depth_time = res.get("depth_update_time", 0)
-    
+
     perf1.metric(
-        "CORA download",
-        f"{cora_time:.2f} s", 
-        " WOD download",
-        f"{wod_time:.2f} s",
-        " ⏱️ Dataset download",
-        f"{download_time:.2f} s"
+        "⏱️ Download times",
+        f"CORA: {cora_time:.2f}s\nWOD: {wod_time:.2f}s\nTotal: {download_time:.2f}s"
     )
     
     perf2.metric(
