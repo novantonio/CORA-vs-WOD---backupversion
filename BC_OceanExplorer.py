@@ -518,22 +518,29 @@ with st.sidebar:
 
 # ── Map ───────────────────────────────────────────────────────────────────────
 
-st.markdown("<div class='section-hdr'>🗺️ Select a Point on the Map</div>",
-            unsafe_allow_html=True)
+from folium.plugins import MousePosition
+
+st.markdown(
+    "<div class='section-hdr'>🗺️ Select a Point on the Map</div>",
+    unsafe_allow_html=True
+)
+
 st.caption(
-    "Click anywhere on the ocean to set the analysis location, "
-    "or type coordinates directly in the sidebar."
+    "Move the mouse over the ocean to update the analysis point in realtime, "
+    "or click to lock a position."
 )
 
 center_lat = st.session_state.get("sel_lat", DEFAULT_LAT)
 center_lon = st.session_state.get("sel_lon", DEFAULT_LON)
 
-m = folium.Map(location=[center_lat, center_lon], zoom_start=5,
-               tiles=None)           # no default tile — we add ours below
+m = folium.Map(
+    location=[center_lat, center_lon],
+    zoom_start=5,
+    tiles=None
+)
 
 # ── Base layers ───────────────────────────────────────────────────────────────
 
-# 1. CartoDB Positron (light, clean)
 folium.TileLayer(
     tiles="CartoDB positron",
     name="CartoDB Positron",
@@ -542,7 +549,6 @@ folium.TileLayer(
     show=True,
 ).add_to(m)
 
-# 2. ESRI — mean depth, multi-colour style (Web Mercator)
 folium.TileLayer(
     tiles="https://server.arcgisonline.com/ArcGIS/rest/services/Ocean/World_Ocean_Base/MapServer/tile/{z}/{y}/{x}",
     attr="Esri",
@@ -551,8 +557,6 @@ folium.TileLayer(
     control=True,
 ).add_to(m)
 
-# 3. EMODnet Bathymetry WMTS — mean depth, multi-colour style (Web Mercator)
-#    Tile URL pattern for WMTS in slippy-map convention
 folium.TileLayer(
     tiles=(
         "https://tiles.emodnet-bathymetry.eu/wmts/1.0.0/"
@@ -569,7 +573,6 @@ folium.TileLayer(
     opacity=0.85,
 ).add_to(m)
 
-# 4. EMODnet Bathymetry WMTS — rainbow colour ramp
 folium.TileLayer(
     tiles=(
         "https://tiles.emodnet-bathymetry.eu/wmts/1.0.0/"
@@ -588,7 +591,6 @@ folium.TileLayer(
 
 # ── Overlay layers ────────────────────────────────────────────────────────────
 
-# 5. EMODnet Bathymetry WMS — bathymetric contours (isobaths)
 folium.WmsTileLayer(
     url="https://ows.emodnet-bathymetry.eu/wms",
     layers="emodnet:contours",
@@ -606,7 +608,6 @@ folium.WmsTileLayer(
     opacity=0.7,
 ).add_to(m)
 
-# 6. EMODnet Bathymetry WMS — mean depth DTM (semi-transparent overlay)
 folium.WmsTileLayer(
     url="https://ows.emodnet-bathymetry.eu/wms",
     layers="emodnet:mean_multicolour",
@@ -624,35 +625,94 @@ folium.WmsTileLayer(
     opacity=0.6,
 ).add_to(m)
 
+# ── Selected point marker ─────────────────────────────────────────────────────
+
 folium.Marker(
     location=[center_lat, center_lon],
     tooltip=f"Selected: {center_lat:.4f}°N, {center_lon:.4f}°E",
     icon=folium.Icon(color="blue", icon="tint", prefix="fa"),
 ).add_to(m)
 
+# ── WOD search box ────────────────────────────────────────────────────────────
+
 folium.Rectangle(
-    bounds=[[center_lat - 0.1, center_lon - 0.1],
-            [center_lat + 0.1, center_lon + 0.1]],
-    color="#00A6D6", weight=1.5, fill=True, fill_opacity=0.08,
+    bounds=[
+        [center_lat - 0.1, center_lon - 0.1],
+        [center_lat + 0.1, center_lon + 0.1]
+    ],
+    color="#00A6D6",
+    weight=1.5,
+    fill=True,
+    fill_opacity=0.08,
     tooltip="WOD search box (±0.1°)",
 ).add_to(m)
 
+# ── Mouse realtime coordinates ────────────────────────────────────────────────
+
+MousePosition(
+    position="topright",
+    separator=" | ",
+    prefix="Cursor:",
+    lat_formatter="function(num) {return L.Util.formatNum(num, 4);};",
+    lng_formatter="function(num) {return L.Util.formatNum(num, 4);};",
+).add_to(m)
+
+# ── Layer control ─────────────────────────────────────────────────────────────
+
 folium.LayerControl().add_to(m)
 
-map_result = st_folium(m, width="100%", height=420, returned_objects=["last_clicked"])
+# ── Streamlit-Folium map ──────────────────────────────────────────────────────
 
-if map_result and map_result.get("last_clicked"):
-    clicked = map_result["last_clicked"]
-    st.session_state["sel_lat"] = round(clicked["lat"], 4)
-    st.session_state["sel_lon"] = round(clicked["lng"], 4)
-    st.rerun()
+map_result = st_folium(
+    m,
+    width="100%",
+    height=420,
+    returned_objects=[
+        "last_clicked",
+        "mouse_position",
+    ],
+)
 
-latitude  = lat_in
-longitude = lon_in
+# ── Realtime mouse tracking ───────────────────────────────────────────────────
+
+if map_result:
+
+    # realtime cursor position
+    mouse = map_result.get("mouse_position")
+
+    if mouse is not None:
+
+        lat = round(mouse["lat"], 4)
+        lon = round(mouse["lng"], 4)
+
+        old_lat = st.session_state.get("sel_lat")
+        old_lon = st.session_state.get("sel_lon")
+
+        # update only if changed
+        if old_lat != lat or old_lon != lon:
+
+            st.session_state["sel_lat"] = lat
+            st.session_state["sel_lon"] = lon
+
+            st.rerun()
+
+    # optional final click
+    clicked = map_result.get("last_clicked")
+
+    if clicked is not None:
+
+        st.session_state["sel_lat"] = round(clicked["lat"], 4)
+        st.session_state["sel_lon"] = round(clicked["lng"], 4)
+
+# ── Active coordinates ────────────────────────────────────────────────────────
+
+latitude = st.session_state.get("sel_lat", DEFAULT_LAT)
+longitude = st.session_state.get("sel_lon", DEFAULT_LON)
 
 st.info(
-    f"📍 **Analysis point:** {latitude:.4f}°N, {longitude:.4f}°E  "
-    f"· Max depth: **{max_depth} m**"
+    f"📍 Analysis point: "
+    f"{latitude:.4f}°N, {longitude:.4f}°E · "
+    f"Max depth: {max_depth} m"
 )
 
 
