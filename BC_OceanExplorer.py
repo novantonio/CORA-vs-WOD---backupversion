@@ -739,11 +739,12 @@ if run_btn:
     cora_surf = fetch_cora_surface(latitude, longitude)
 
     cora_time = time.perf_counter() - download_t0
+    t1 = time.perf_counter()
 
     pbar.progress(35, text="Querying WOD (full water column)…")
     wod_raw = fetch_wod_all(latitude, longitude)
 
-    wod_time = time.perf_counter() - cora_time
+    wod_time = time.perf_counter() - t1
 
     pbar.progress(70, text="Fetching CORA depth profile…")
     cora_dp = fetch_cora_depth_profile(
