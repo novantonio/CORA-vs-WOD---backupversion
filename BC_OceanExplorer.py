@@ -31,6 +31,7 @@ from __future__ import annotations
 
 import io
 import warnings
+import time
 from datetime import datetime
 
 import folium
@@ -658,7 +659,11 @@ st.info(
 # ── Initial run ───────────────────────────────────────────────────────────────
 
 if run_btn:
+
     st.session_state.pop("results", None)
+
+    # ── timing: dataset download ────────────────────────────────────────────
+    download_t0 = time.perf_counter()
 
     pbar = st.progress(0, text="Fetching CORA surface data…")
     cora_surf = fetch_cora_surface(latitude, longitude)
@@ -667,35 +672,56 @@ if run_btn:
     wod_raw = fetch_wod_all(latitude, longitude)
 
     pbar.progress(70, text="Fetching CORA depth profile…")
-    cora_dp = fetch_cora_depth_profile(latitude, longitude, float(max_depth))
+    cora_dp = fetch_cora_depth_profile(
+        latitude,
+        longitude,
+        float(max_depth)
+    )
 
     pbar.progress(100, text="✅ Done!")
+
+    download_elapsed = time.perf_counter() - download_t0
 
     st.session_state["results"] = {
         "cora_surf": cora_surf,
         "wod_raw":   wod_raw,
         "cora_dp":   cora_dp,
-        "lat":  latitude,
-        "lon":  longitude,
-        "ts":   datetime.now().strftime("%Y-%m-%d %H:%M"),
+        "lat":       latitude,
+        "lon":       longitude,
+        "ts":        datetime.now().strftime("%Y-%m-%d %H:%M"),
+
+        # ── performance ────────────────────────────────────────────────────
+        "download_time": download_elapsed,
+        "plot_time": None,
     }
+
     st.session_state["last_depth"] = max_depth
 
 
 # ── Reactive depth update (slider changed after initial run) ──────────────────
-# This block fires on every Streamlit re-run when results exist and depth
-# has changed — re-clips WOD from cache and re-fetches CORA depth profile
-# (which is itself cached by lat/lon/depth, so repeated same-depth calls are free).
 
 if (
     "results" in st.session_state
     and st.session_state.get("last_depth") != max_depth
 ):
+
     res = st.session_state["results"]
+
     with st.spinner(f"Updating depth profiles to {max_depth} m…"):
+
+        depth_t0 = time.perf_counter()
+
         res["cora_dp"] = fetch_cora_depth_profile(
-            res["lat"], res["lon"], float(max_depth)
+            res["lat"],
+            res["lon"],
+            float(max_depth)
         )
+
+        depth_elapsed = time.perf_counter() - depth_t0
+
+        # optional: store reactive depth-update timing
+        res["depth_update_time"] = depth_elapsed
+
     st.session_state["results"]    = res
     st.session_state["last_depth"] = max_depth
 
@@ -703,6 +729,10 @@ if (
 # ── Display ───────────────────────────────────────────────────────────────────
 
 if "results" in st.session_state:
+
+    # ── timing: plot generation ─────────────────────────────────────────────
+    plot_t0 = time.perf_counter()
+
     res       = st.session_state["results"]
     cora_surf = res["cora_surf"]
     wod_raw   = res["wod_raw"]
@@ -715,6 +745,28 @@ if "results" in st.session_state:
         f"{rlat:.4f}°N, {rlon:.4f}°E · max {max_depth} m · {res['ts']}</div>",
         unsafe_allow_html=True,
     )
+
+    # ── Performance info ────────────────────────────────────────────────────
+
+    perf1, perf2, perf3 = st.columns(3)
+
+    if res.get("download_time") is not None:
+        perf1.metric(
+            "⏱️ Dataset download",
+            f"{res['download_time']:.2f} s"
+        )
+
+    if res.get("plot_time") is not None:
+        perf2.metric(
+            "🎨 Plot generation",
+            f"{res['plot_time']:.2f} s"
+        )
+
+    if res.get("depth_update_time") is not None:
+        perf3.metric(
+            "🔄 Depth update",
+            f"{res['depth_update_time']:.2f} s"
+        )
 
     # Quick metrics row
     c1, c2, c3, c4 = st.columns(4)
