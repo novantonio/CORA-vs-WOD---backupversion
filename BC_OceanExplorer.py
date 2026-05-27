@@ -824,7 +824,7 @@ if "results" in st.session_state:
 
    # ── Performance info ────────────────────────────────────────────────────
 
-    perf1, perf2, perf3 = st.columns(3)
+    perf1, perf2, perf3, perf4, perf5 = st.columns(5)
     
     download_time = res.get("download_time", 0)
     plot_time_val = res.get("plot_time", 0)
@@ -832,15 +832,22 @@ if "results" in st.session_state:
 
     perf1.metric(
         "⏱️ Download times",
-        f"CORA: {cora_time:.2f}s\nWOD: {wod_time:.2f}s\nTotal: {download_time:.2f}s"
+        f"CORA: {cora_time:.2f}s"
     )
-    
     perf2.metric(
+        "⏱️ Download times",
+        f"WOD: {wod_time:.2f}s"
+    )
+    perf3.metric(
+        "⏱️ Download times",
+        f"Total: {download_time:.2f}s"
+    )
+    perf4.metric(
       "🎨 Plot generation",
       f"{float(plot_time_val or 0):.2f} s"
     )
     
-    perf3.metric(
+    perf5.metric(
         "🔄 Depth update",
         f"{float(depth_time or 0):.2f} s"
     )
